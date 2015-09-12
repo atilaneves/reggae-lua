@@ -96,11 +96,25 @@ function arrayify(arg)
       return {}
    end
 
-   if type(arg) == 'table' then
+   if isArray(arg) then
       return arg
    else
       return {arg}
    end
+end
+
+function isArray(arg)
+   if type(arg) ~= 'table' then
+      return false
+   end
+
+   for k, v in pairs(arg) do
+      if type(k) ~= 'number' then
+         return false
+      end
+   end
+
+   return true
 end
 
 function ShellCommand.new(cmd)
@@ -116,7 +130,6 @@ end
 function FixedDependencies.new(deps)
    local self = setmetatable({}, FixedDependencies)
    self.isDependency = true
-   self.type = 'fixed'
    self.targets = arrayify(deps)
    return self
 end
