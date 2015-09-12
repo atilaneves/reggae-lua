@@ -1,5 +1,13 @@
 local JSON = require('JSON')
 
+local Build = {}
+Build.__index = Build
+setmetatable(Build, {
+                __call = function(cls, ...)
+                   return cls.new(...)
+                end,
+})
+
 local Target = {}
 Target.__index = Target
 
@@ -8,6 +16,16 @@ setmetatable(Target, {
                    return cls.new(...)
                 end,
 })
+
+local ShellCommand = {}
+ShellCommand.__index = ShellCommand
+
+setmetatable(ShellCommand, {
+                __call = function (cls, ...)
+                   return cls.new(...)
+                end
+})
+
 
 local FixedDependencies = {}
 FixedDependencies.__index = FixedDependencies
@@ -18,12 +36,36 @@ setmetatable(FixedDependencies, {
                 end
 })
 
+
+function Build.new(target)
+   local self = setmetatable({}, Build)
+   self.targets = {target}
+   return self
+end
+
+function Build:to_json()
+   return JSON:encode(self:jsonify())
+end
+
+function Build:jsonify()
+   targets = {}
+   for k, v in pairs(self.targets) do
+      targets[k] = v:jsonify()
+   end
+
+   return targets
+end
+
 function Target.new(outputs, cmd, deps, imps)
    local self = setmetatable({}, Target)
-   self.command = {}
+
+   cmd = cmd or ''
+
+   self.command = jsonifiable(cmd, ShellCommand)
    self.outputs = arrayify(outputs)
    self.dependencies = dependify(deps, FixedDependencies)
    self.implicits = dependify(imps, FixedDependencies)
+
    return self
 end
 
@@ -34,15 +76,19 @@ end
 function Target:jsonify()
    return {
            type = 'fixed',
-           command = self.command,
+           command = self.command:jsonify(),
            outputs = self.outputs,
            dependencies = self.dependencies:jsonify(),
            implicits = self.implicits:jsonify(),
    }
 end
 
-function dependify(arg, klass)
-   return ((arg and arg.isDependency) and arg or klass.new(arg))
+function jsonifiable(arg, cls)
+   return (arg and arg.jsonify) and arg or cls.new(arg)
+end
+
+function dependify(arg, cls)
+   return (arg and arg.isDependency) and arg or cls.new(arg)
 end
 
 function arrayify(arg)
@@ -50,13 +96,22 @@ function arrayify(arg)
       return {}
    end
 
-   if type(arg) == 'table 'then
+   if type(arg) == 'table' then
       return arg
    else
       return {arg}
    end
 end
 
+function ShellCommand.new(cmd)
+   local self = setmetatable({}, ShellCommand)
+   self.cmd = (cmd == '') and {} or {type='shell', cmd=cmd}
+   return self
+end
+
+function ShellCommand:jsonify()
+   return self.cmd
+end
 
 function FixedDependencies.new(deps)
    local self = setmetatable({}, FixedDependencies)
@@ -84,5 +139,6 @@ function show(val)
 end
 
 return {
+   Build = Build,
    Target = Target,
 }
