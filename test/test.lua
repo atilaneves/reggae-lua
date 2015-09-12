@@ -196,6 +196,25 @@ function TestJson:testStaticLib()
    ]])
 end
 
+function TestJson.testScriptLike()
+   local app = reggae.scriptlike({src_name = 'src/main.d',
+                                  exe_name = 'leapp',
+                                  flags = '-g',
+                                  includes = {'src'}})
+   local bld = reggae.Build(app)
+   assertSameJson(bld:to_json(),
+                  [[
+        [{"type": "dynamic",
+          "func": "scriptlike",
+          "src_name": "src/main.d",
+          "exe_name": "leapp",
+          "link_with": {"type": "fixed", "targets": []},
+          "flags": "-g",
+          "includes": ["src"],
+          "string_imports": []}]
+   ]])
+end
+
 function assertSameJson(json1, json2)
    lu.assertEquals(JSON:decode(json1), JSON:decode(json2))
 end

@@ -235,10 +235,22 @@ function static_library(name, options)
    return DynamicDependencies('staticLibrary', options)
 end
 
+function scriptlike(options)
+
+    options.flags = options.flags or ""
+    options.includes = options.includes or {}
+    options.string_imports = options.string_imports or {}
+    options.link_with = options.link_with or FixedDependencies.new({})
+
+    return DynamicDependencies.new('scriptlike', options)
+end
+
+
 return {
    Build = Build,
    Target = Target,
    link = link,
    object_files = object_files,
    static_library = static_library,
+   scriptlike = scriptlike,
 }
