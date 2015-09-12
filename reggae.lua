@@ -222,11 +222,23 @@ function DynamicDependencies:jsonify()
    return result
 end
 
+function static_library(name, options)
+   options.name = name
+   options.src_dirs = options.src_dirs or {}
+   options.exclude_dirs = options.exclude_dirs or {}
+   options.src_files = options.src_files or {}
+   options.exclude_files = options.exclude_files or {}
+   options.flags = options.flags or ""
+   options.includes = options.includes or {}
+   options.string_imports = options.string_imports or {}
 
+   return DynamicDependencies('staticLibrary', options)
+end
 
 return {
    Build = Build,
    Target = Target,
    link = link,
-   object_files = object_files
+   object_files = object_files,
+   static_library = static_library,
 }
