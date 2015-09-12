@@ -36,6 +36,15 @@ setmetatable(FixedDependencies, {
                 end
 })
 
+local LinkCommand = {}
+LinkCommand.__index = LinkCommand
+
+setmetatable(LinkCommand, {
+                __call = function (cls, ...)
+                   return cls.new(...)
+                end
+})
+
 
 function Build.new(target)
    local self = setmetatable({}, Build)
@@ -143,15 +152,31 @@ function FixedDependencies:jsonify()
    return {type = 'fixed', targets = targets}
 end
 
-function show(val)
-   if type(arg) == 'table 'then
-      return '[' .. val .. ']'
-   else
-      return ''
-   end
+function link(options)
+   options.flags = options.flags or ''
+   options.dependencies = options.dependencies or {}
+   options.implicits = options.implicits or {}
+
+    return Target.new(options.exe_name,
+                      LinkCommand.new(options.flags),
+                      options.dependencies,
+                      options.implicits)
+
 end
+
+function LinkCommand.new(flags)
+   local self = setmetatable({}, LinkCommand)
+   self.flags = flags
+   return self
+end
+
+function LinkCommand:jsonify()
+   return {type = 'link', flags = self.flags}
+end
+
 
 return {
    Build = Build,
    Target = Target,
+   link = link,
 }
