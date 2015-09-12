@@ -27,6 +27,17 @@ setmetatable(ShellCommand, {
 })
 
 
+
+local LinkCommand = {}
+LinkCommand.__index = LinkCommand
+
+setmetatable(LinkCommand, {
+                __call = function (cls, ...)
+                   return cls.new(...)
+                end
+})
+
+
 local FixedDependencies = {}
 FixedDependencies.__index = FixedDependencies
 
@@ -36,10 +47,10 @@ setmetatable(FixedDependencies, {
                 end
 })
 
-local LinkCommand = {}
-LinkCommand.__index = LinkCommand
+local DynamicDependencies = {}
+DynamicDependencies.__index = DynamicDependencies
 
-setmetatable(LinkCommand, {
+setmetatable(DynamicDependencies, {
                 __call = function (cls, ...)
                    return cls.new(...)
                 end
@@ -174,9 +185,48 @@ function LinkCommand:jsonify()
    return {type = 'link', flags = self.flags}
 end
 
+function object_files(options)
+
+   options.src_dirs = options.src_dirs or {}
+   options.exclude_dirs = options.exclude_dirs or {}
+   options.src_files = options.src_files or {}
+   options.exclude_files = options.exclude_files or {}
+   options.flags = options.flags or ""
+   options.includes = options.includes or {}
+   options.string_imports = options.string_imports or {}
+
+   return DynamicDependencies.new('objectFiles', options)
+end
+
+function DynamicDependencies.new(func_name, args)
+   local self = setmetatable({}, DynamicDependencies)
+
+   self.isDependency = true
+   self.func_name = func_name
+   self.args = args
+
+   return self
+end
+
+function DynamicDependencies:jsonify()
+   local result = {type = 'dynamic', func = self.func_name}
+
+   for k, v in pairs(self.args) do
+      if v.jsonify then
+         result[k] = v:jsonify()
+      else
+         result[k] = v
+      end
+   end
+
+   return result
+end
+
+
 
 return {
    Build = Build,
    Target = Target,
    link = link,
+   object_files = object_files
 }

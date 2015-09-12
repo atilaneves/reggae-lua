@@ -140,6 +140,31 @@ function TestJson:testLinkFixed()
 end
 
 
+function TestJson:testLinkDynamic()
+   local objs = reggae.object_files({flags = '-I$project/src', src_dirs = {'src'}})
+   local app = reggae.link({exe_name = 'myapp', dependencies = objs, flags = '-L-M'})
+   local bld = reggae.Build(app)
+   assertSameJson(bld:to_json(),
+                  [[
+        [{"type": "fixed",
+          "command": {"type": "link", "flags": "-L-M"},
+          "outputs": ["myapp"],
+          "dependencies": {
+              "type": "dynamic",
+              "func": "objectFiles",
+              "src_dirs": ["src"],
+              "exclude_dirs": [],
+              "src_files": [],
+              "exclude_files": [],
+              "flags": "-I$project/src",
+              "includes": [],
+              "string_imports": []},
+          "implicits": {
+              "type": "fixed",
+              "targets": []}}]
+]])
+end
+
 function assertSameJson(json1, json2)
    lu.assertEquals(JSON:decode(json1), JSON:decode(json2))
 end
