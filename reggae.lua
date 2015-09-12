@@ -9,13 +9,21 @@ setmetatable(Target, {
                 end,
 })
 
-function Target.new(outputs)
+local FixedDependencies = {}
+FixedDependencies.__index = FixedDependencies
+
+setmetatable(FixedDependencies, {
+                __call = function (cls, ...)
+                   return cls.new(...)
+                end
+})
+
+function Target.new(outputs, cmd, deps, imps)
    local self = setmetatable({}, Target)
-   self.type = 'fixed'
-   self.command = ''
-   self.outputs = arraify(outputs)
-   self.dependencies = {}
-   self.implicits = {}
+   self.command = {}
+   self.outputs = arrayify(outputs)
+   self.dependencies = dependify(deps, FixedDependencies)
+   self.implicits = dependify(imps, FixedDependencies)
    return self
 end
 
@@ -24,17 +32,24 @@ function Target:to_json()
 end
 
 function Target:jsonify()
-   tbl = {
-           type = self.type,
+   return {
+           type = 'fixed',
            command = self.command,
            outputs = self.outputs,
-           dependencies = self.dependencies,
-           implicits = self.implicits,
+           dependencies = self.dependencies:jsonify(),
+           implicits = self.implicits:jsonify(),
    }
-   return tbl
 end
 
-function arraify(arg)
+function dependify(arg, klass)
+   return ((arg and arg.isDependency) and arg or klass.new(arg))
+end
+
+function arrayify(arg)
+   if arg == nil then
+      return {}
+   end
+
    if type(arg) == 'table 'then
       return arg
    else
@@ -42,14 +57,22 @@ function arraify(arg)
    end
 end
 
-function jsonise(tbl)
-   result = '{'
-   for k, v in pairs(tbl) do
-      result = result .. '"' .. k .. '"' .. ':' .. '"' .. show(v) .. '"' .. ', '
-   end
-   result = result .. '}'
 
-   return result
+function FixedDependencies.new(deps)
+   local self = setmetatable({}, FixedDependencies)
+   self.isDependency = true
+   self.type = 'fixed'
+   self.targets = arrayify(deps)
+   return self
+end
+
+
+function FixedDependencies:jsonify()
+   local targets = {}
+   for k, v in pairs(self.targets) do
+      targets[k] = v:jsonify()
+   end
+   return {type = 'fixed', targets = targets}
 end
 
 function show(val)
