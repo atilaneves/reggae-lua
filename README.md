@@ -1,7 +1,13 @@
 reggae-lua
 =============
 
-A lua interface / front-end to [the reggae meta-build system](https://github.org/atilaneves/reggae).
+A lua interface / front-end to [the reggae meta-build system](https://github.org/atilaneves/
+
+Installation
+------------
+
+Set the `LUAPATH` environment variable to point to the installation path
+(e.g. `~/.luarocks/lib/luarocks/rocks-5.3/reggae/0.0-1/?.lua`).
 
 
 Usage
