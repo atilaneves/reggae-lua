@@ -21,5 +21,6 @@ build = {
    modules = {
       reggae = "reggae.lua",
       reggae_json_build = "reggae_json_build.lua",
+      JSON = "JSON.lua"
    }
 }
