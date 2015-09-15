@@ -60,6 +60,7 @@ setmetatable(DynamicDependencies, {
 function Build.new(target)
    local self = setmetatable({}, Build)
    self.targets = {target}
+   self.isBuild = true
    return self
 end
 
