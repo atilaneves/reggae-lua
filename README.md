@@ -25,7 +25,7 @@ C build could be written like this:
 
     local reggae = require('reggae')
     local main_obj = reggae.Target('main.o', 'gcc -I$project/src -c $in -o $out', reggae.Target('src/main.c'))
-    local maths_obj = regage.Target('maths.o', 'gcc -c $in -o $out', reggae.Target('src/maths.c'))
+    local maths_obj = reggae.Target('maths.o', 'gcc -c $in -o $out', reggae.Target('src/maths.c'))
     local app = reggae.Target('myapp', 'gcc -o $out $in', {main_obj, maths_obj})
     return {bld = reggae.Build(app)}
 
